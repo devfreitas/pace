@@ -76,7 +76,7 @@ export default function App() {
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <StatusBar style="dark" animated={true} />
       <ScreenTransition
         activeScreen={currentScreen}

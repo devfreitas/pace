@@ -10,12 +10,12 @@ export const theme = {
     accent: '#0284C7' // Sophisticated Cold Blue
   },
   emotions: {
-    intro: '#E0F2FE', 
-    focus: '#BAE6FD', 
-    story: '#7DD3FC', 
-    climax: '#38BDF8',
-    transition: '#0EA5E9', 
-    neutral: '#F8FAFC' 
+    intro: '#0F766E', // Deep Teal
+    focus: '#0369A1', // Ocean Blue
+    story: '#B45309', // Warm Amber
+    climax: '#BE123C', // Deep Rose
+    transition: '#6D28D9', // Deep Purple
+    neutral: '#475569' // Slate
   },
   geometry: {
     radius: 4, // "pontas mais finas" (sharp, architectural corners)

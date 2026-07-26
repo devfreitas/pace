@@ -27,9 +27,9 @@ Pace é um assistente visual que troca a ansiedade dos cronômetros tradicionais
 
 ## 3. Typography
 
-**Direction:** Serif display + sans body
+**Direction:** Unified Serif (`CormorantGaramond`)
 
-A combinação traz tensão criativa: a elegância sofisticada e editorial de uma Serif nos grandes títulos e a clareza impecável de uma Sans-serif limpa no texto corrido. Isso dá à ferramenta utilitária uma aura premium e humana.
+A tipografia da aplicação agora é unificada em uma única família Serif elegante e arquitetônica (`CormorantGaramond`). Isso elimina o ar de "sistema utilitário" de uma fonte Sans-Serif comum e veste a interface inteira — de grandes títulos a pequenos botões de ação e rótulos — com uma aura editorial, refinada e majestosa.
 
 *[font pairing to be chosen at implementation]*
 

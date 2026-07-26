@@ -23,16 +23,15 @@ interface WelcomeScreenProps {
 }
 
 export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
-  const buttonAnim = useSharedValue(0);
+  const button1Anim = useSharedValue(0);
+  const button2Anim = useSharedValue(0);
   const bgPulse = useSharedValue(1);
 
   useEffect(() => {
     const easeOut = Easing.bezier(0.22, 1, 0.36, 1);
 
-    buttonAnim.value = withDelay(
-      1500, // delay after all text is revealed
-      withTiming(1, { duration: 1000, easing: easeOut })
-    );
+    button1Anim.value = withTiming(1, { duration: 800, easing: easeOut });
+    button2Anim.value = withDelay(150, withTiming(1, { duration: 800, easing: easeOut }));
 
     bgPulse.value = withRepeat(
       withSequence(
@@ -49,26 +48,42 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
     onNext(mode);
   };
 
-  const handleClearData = async () => {
-    try {
-      await AsyncStorage.multiRemove(['@setup_data', '@notes_data']);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Limpeza Concluída', 'Todos os dados foram apagados com sucesso.');
-    } catch (e) {
-      console.error('Failed to clear data', e);
-    }
+  const handleClearData = () => {
+    Alert.alert(
+      'Apagar tudo?',
+      'Isso removerá todas as apresentações salvas. Esta ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Apagar Tudo',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.multiRemove(['@setup_data', '@notes_data']);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              Alert.alert('Limpeza Concluída', 'Todos os dados foram apagados com sucesso.');
+            } catch (e) {
+              console.error('Failed to clear data', e);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const bgStyle = useAnimatedStyle(() => ({
     transform: [{ scale: bgPulse.value }],
-    opacity: 0.05,
+    opacity: 0.15,
   }));
 
-  const buttonStyle = useAnimatedStyle(() => ({
-    opacity: buttonAnim.value,
-    transform: [{
-      translateY: interpolate(buttonAnim.value, [0, 1], [20, 0])
-    }]
+  const button1Style = useAnimatedStyle(() => ({
+    opacity: button1Anim.value,
+    transform: [{ translateY: interpolate(button1Anim.value, [0, 1], [20, 0]) }]
+  }));
+
+  const button2Style = useAnimatedStyle(() => ({
+    opacity: button2Anim.value,
+    transform: [{ translateY: interpolate(button2Anim.value, [0, 1], [20, 0]) }]
   }));
 
   return (
@@ -96,20 +111,24 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
           />
         </View>
         
-        <Animated.View style={[styles.buttonContainer, buttonStyle]}>
-          <Pressable
-            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-            onPress={() => handlePress('presentation')}
-          >
-            <Text style={styles.buttonText}>Criar Apresentação</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.buttonOutline, pressed && styles.buttonPressed]}
-            onPress={() => handlePress('notes')}
-          >
-            <Text style={styles.buttonOutlineText}>Anotações Livres</Text>
-          </Pressable>
-        </Animated.View>
+        <View style={styles.buttonContainer}>
+          <Animated.View style={button1Style}>
+            <Pressable
+              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+              onPress={() => handlePress('presentation')}
+            >
+              <Text style={styles.buttonText}>Criar Apresentação</Text>
+            </Pressable>
+          </Animated.View>
+          <Animated.View style={button2Style}>
+            <Pressable
+              style={({ pressed }) => [styles.buttonOutline, pressed && styles.buttonPressed]}
+              onPress={() => handlePress('notes')}
+            >
+              <Text style={styles.buttonOutlineText}>Anotações Livres</Text>
+            </Pressable>
+          </Animated.View>
+        </View>
       </View>
 
       <Pressable style={styles.clearButton} onPress={handleClearData}>
@@ -135,11 +154,10 @@ const styles = StyleSheet.create({
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.textSecondary,
     position: 'absolute',
     top: -width * 0.5,
     right: -width * 0.5,
-    opacity: 0.1, // Subtle accent bleed
   },
   content: {
     flex: 1,
@@ -200,18 +218,16 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     position: 'absolute',
-    bottom: 40,
-    alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    bottom: 32,
+    right: 24,
+    padding: 12,
     zIndex: 1,
   },
   clearButtonText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'CormorantGaramond_400Regular',
     fontSize: 14,
-    color: theme.colors.textSecondary,
-    textTransform: 'uppercase',
+    color: theme.colors.textMuted,
     letterSpacing: 1,
-    opacity: 0.6,
+    opacity: 0.4,
   },
 });
