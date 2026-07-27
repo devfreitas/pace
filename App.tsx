@@ -13,7 +13,7 @@ import { SetupScreen } from './src/screens/SetupScreen';
 import { PalcoScreen } from './src/screens/PalcoScreen';
 import { NotesSetupScreen } from './src/screens/NotesSetupScreen';
 import { ScreenTransition } from './src/components/ScreenTransition';
-import { theme } from './src/theme/colors';
+import { useTheme, Theme, theme } from './src/theme/colors';
 import { Block } from './src/types';
 
 type Screen = 'welcome' | 'setup' | 'palco' | 'notes_setup';
@@ -22,6 +22,8 @@ import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-g
 import { runOnJS } from 'react-native-reanimated';
 
 export default function App() {
+  const theme = useTheme();
+
   const [currentScreen, setCurrentScreen] = useState<Screen>('welcome');
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const [presentationBlocks, setPresentationBlocks] = useState<Block[]>([]);
@@ -121,7 +123,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <GestureDetector gesture={edgePanGesture}>
         <View style={{ flex: 1 }}>
-          <StatusBar style="dark" animated={true} />
+          <StatusBar style={theme.isDark ? "light" : "dark"} animated={true} />
           <ScreenTransition
             activeScreen={currentScreen}
             direction={direction}

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Easing, ScrollView } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
-import { theme } from '../theme/colors';
+import { useTheme, Theme, theme } from '../theme/colors';
 import * as Haptics from 'expo-haptics';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -61,6 +61,8 @@ const initialBlocks = [
 ];
 
 export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => void; onBack: () => void }) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const [blocks, setBlocks] = useState(initialBlocks);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [targetTotalTime, setTargetTotalTime] = useState('10:00');
@@ -273,7 +275,7 @@ export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => v
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   homeBtnAbsolute: { position: 'absolute', top: 60, left: 24, zIndex: 10 },
   scrollContent: { paddingTop: 115, paddingHorizontal: 24, paddingBottom: 140 },

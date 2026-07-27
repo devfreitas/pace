@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
-import { theme } from '../theme/colors';
+import { useTheme, Theme, theme } from '../theme/colors';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +17,8 @@ const hexToRgba = (hex: string, opacity: number) => {
 };
 
 export function NotesSetupScreen({ onBack }: { onBack: () => void }) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const [title, setTitle] = useState('');
   const [blocks, setBlocks] = useState<Block[]>([{ id: Date.now().toString(), text: '' }]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -329,7 +331,7 @@ export function NotesSetupScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   homeBtnAbsolute: { position: 'absolute', top: 60, left: 24, zIndex: 10 },
   scrollContent: { paddingTop: 115, paddingHorizontal: 24, paddingBottom: 140, flexGrow: 1 },

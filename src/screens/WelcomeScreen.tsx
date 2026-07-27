@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions, Alert } from 'react-native';
-import { theme } from '../theme/colors';
+import { useTheme, Theme, theme } from '../theme/colors';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
@@ -23,6 +23,8 @@ interface WelcomeScreenProps {
 }
 
 export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const button1Anim = useSharedValue(0);
   const button2Anim = useSharedValue(0);
   const button3Anim = useSharedValue(0);
@@ -157,6 +159,8 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
 }
 
 function AlertDrawer({ visible, onClose, onConfirm }: { visible: boolean; onClose: () => void; onConfirm: () => void }) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const overlayOpacity = useSharedValue(0);
   const drawerY = useSharedValue(height);
 
@@ -199,7 +203,7 @@ function AlertDrawer({ visible, onClose, onConfirm }: { visible: boolean; onClos
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions, Vibration } from 'react-native';
-import { theme } from '../theme/colors';
+import { useTheme, Theme, theme } from '../theme/colors';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useKeepAwake } from 'expo-keep-awake';
@@ -49,6 +49,8 @@ const getDynamicFontSize = (text?: string) => {
 
 
 export function PalcoScreen({ blocks, onEnd }: PalcoScreenProps) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   useKeepAwake();
 
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
@@ -178,7 +180,7 @@ export function PalcoScreen({ blocks, onEnd }: PalcoScreenProps) {
   return (
     <GestureDetector gesture={doubleTap}>
       <Animated.View style={styles.container}>
-        <StatusBar style="dark" animated={true} />
+        <StatusBar style={theme.isDark ? "light" : "dark"} animated={true} />
         <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
           <Animated.View style={[bgStyle, { alignItems: 'center', justifyContent: 'center' }]}>
             <View style={{ width: width * 0.2, height: width * 0.2, borderRadius: width * 0.1, backgroundColor: currentBlock?.color || theme.colors.textPrimary, opacity: 0.12 }} />
@@ -208,6 +210,7 @@ export function PalcoScreen({ blocks, onEnd }: PalcoScreenProps) {
 }
 
 const Particle = ({ index, total, progress }: { index: number, total: number, progress: Animated.SharedValue<number> }) => {
+  const theme = useTheme();
   const random1 = Math.sin(index * 123.456) * 0.5 + 0.5;
   const random2 = Math.cos(index * 321.654) * 0.5 + 0.5;
   const random3 = Math.sin(index * 890.123) * 0.5 + 0.5;
@@ -246,6 +249,8 @@ const Particle = ({ index, total, progress }: { index: number, total: number, pr
 };
 
 function FinishedView({ onEnd }: { onEnd: () => void }) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => getStyles(theme), [theme]);
   const particlesProgress = useSharedValue(0);
   const orbScale = useSharedValue(0);
   const orbRotate = useSharedValue(0);
@@ -286,7 +291,7 @@ function FinishedView({ onEnd }: { onEnd: () => void }) {
 
   return (
     <View style={[styles.container, styles.finishedContainer]}>
-      <StatusBar style="dark" />
+      <StatusBar style={theme.isDark ? "light" : "dark"} />
       
       {/* Orb */}
       <Animated.View style={[{
@@ -320,7 +325,7 @@ function FinishedView({ onEnd }: { onEnd: () => void }) {
 }
 
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   content: { flex: 1, zIndex: 10, paddingVertical: 60, paddingHorizontal: 24 },
   topContainer: { alignItems: 'center', marginBottom: 40 },
