@@ -47,19 +47,6 @@ const getDynamicFontSize = (text?: string) => {
   return 20;
 };
 
-const isColorLight = (color: string) => {
-  if (!color) return true;
-  let hex = color.replace('#', '');
-  if (hex.length === 3) {
-    hex = hex.split('').map(c => c + c).join('');
-  }
-  if (hex.length !== 6) return true;
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return luma > 128;
-};
 
 export function PalcoScreen({ blocks, onEnd }: PalcoScreenProps) {
   useKeepAwake();
@@ -71,7 +58,6 @@ export function PalcoScreen({ blocks, onEnd }: PalcoScreenProps) {
 
   const currentBlock = blocks[currentBlockIndex];
   const blockDurationSecs = currentBlock ? parseTimeToSeconds(currentBlock.duration) : 0;
-  const blockIsLight = isColorLight(currentBlock?.color || theme.colors.background);
   const remainingTime = Math.max(0, blockDurationSecs - elapsedForPart);
 
   const scaleVal = useSharedValue(0.1);
@@ -192,7 +178,7 @@ export function PalcoScreen({ blocks, onEnd }: PalcoScreenProps) {
   return (
     <GestureDetector gesture={doubleTap}>
       <Animated.View style={styles.container}>
-        <StatusBar style={blockIsLight ? "dark" : "light"} animated={true} />
+        <StatusBar style="dark" animated={true} />
         <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
           <Animated.View style={[bgStyle, { alignItems: 'center', justifyContent: 'center' }]}>
             <View style={{ width: width * 0.2, height: width * 0.2, borderRadius: width * 0.1, backgroundColor: currentBlock?.color || theme.colors.textPrimary, opacity: 0.12 }} />
