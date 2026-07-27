@@ -55,27 +55,21 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
     onNext(mode);
   };
 
+  const [isAlertVisible, setAlertVisible] = React.useState(false);
+
   const handleClearData = () => {
-    Alert.alert(
-      'Apagar tudo?',
-      'Isso removerá todas as apresentações salvas. Esta ação não pode ser desfeita.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Apagar Tudo',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.multiRemove(['@setup_data', '@notes_data']);
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              Alert.alert('Limpeza Concluída', 'Todos os dados foram apagados com sucesso.');
-            } catch (e) {
-              console.error('Failed to clear data', e);
-            }
-          }
-        }
-      ]
-    );
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAlertVisible(true);
+  };
+
+  const confirmClearData = async () => {
+    try {
+      await AsyncStorage.multiRemove(['@setup_data', '@notes_data']);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setAlertVisible(false);
+    } catch (e) {
+      console.error('Failed to clear data', e);
+    }
   };
 
   const bgStyle = useAnimatedStyle(() => ({
@@ -147,9 +141,58 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
           </Animated.View>
           <Animated.View style={button3Style}>
             <Pressable style={styles.clearButton} onPress={handleClearData}>
-              <Text style={styles.clearButtonText}>Limpar</Text>
+              <Text style={styles.clearButtonText}>Limpar Dados</Text>
             </Pressable>
           </Animated.View>
+        </View>
+      </Animated.View>
+
+      <AlertDrawer 
+        visible={isAlertVisible} 
+        onClose={() => setAlertVisible(false)} 
+        onConfirm={confirmClearData} 
+      />
+    </View>
+  );
+}
+
+function AlertDrawer({ visible, onClose, onConfirm }: { visible: boolean; onClose: () => void; onConfirm: () => void }) {
+  const overlayOpacity = useSharedValue(0);
+  const drawerY = useSharedValue(height);
+
+  useEffect(() => {
+    if (visible) {
+      overlayOpacity.value = withTiming(1, { duration: 300 });
+      drawerY.value = withTiming(0, { duration: 400, easing: Easing.out(Easing.cubic) });
+    } else {
+      overlayOpacity.value = withTiming(0, { duration: 300 });
+      drawerY.value = withTiming(height, { duration: 300, easing: Easing.in(Easing.cubic) });
+    }
+  }, [visible]);
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
+
+  const drawerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: drawerY.value }],
+  }));
+
+  return (
+    <View style={[StyleSheet.absoluteFill, { zIndex: 100 }]} pointerEvents={visible ? 'auto' : 'none'}>
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(15, 23, 42, 0.4)' }, overlayStyle]}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+      </Animated.View>
+      <Animated.View style={[styles.drawerContainer, drawerStyle]}>
+        <Text style={styles.drawerTitle}>Apagar tudo?</Text>
+        <Text style={styles.drawerSubtitle}>Isso removerá todas as apresentações salvas e anotações. Esta ação não pode ser desfeita.</Text>
+        <View style={styles.drawerActions}>
+          <Pressable style={({ pressed }) => [styles.drawerButtonConfirm, pressed && styles.buttonPressed]} onPress={onConfirm}>
+            <Text style={styles.drawerButtonConfirmText}>Apagar Definitivamente</Text>
+          </Pressable>
+          <Pressable style={({ pressed }) => [styles.drawerButtonCancel, pressed && styles.buttonPressed]} onPress={onClose}>
+            <Text style={styles.drawerButtonCancelText}>Cancelar</Text>
+          </Pressable>
         </View>
       </Animated.View>
     </View>
@@ -240,10 +283,71 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   clearButtonText: {
-    fontFamily: 'CormorantGaramond_400Regular',
+    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    letterSpacing: 1.5,
+    opacity: 0.8,
+    textTransform: 'uppercase',
+  },
+  drawerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 32,
+    paddingBottom: 48,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  drawerTitle: {
+    fontFamily: 'CormorantGaramond_600SemiBold',
+    fontSize: 32,
+    color: theme.colors.textPrimary,
+    marginBottom: 12,
+  },
+  drawerSubtitle: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 16,
+    color: theme.colors.textSecondary,
+    lineHeight: 24,
+    marginBottom: 32,
+  },
+  drawerActions: {
+    gap: 12,
+  },
+  drawerButtonCancel: {
+    paddingVertical: 18,
+    alignItems: 'center',
+    borderRadius: theme.geometry.radius,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: theme.colors.textSecondary,
+  },
+  drawerButtonCancelText: {
+    fontFamily: 'Inter_500Medium',
     fontSize: 14,
-    color: theme.colors.textMuted,
+    color: theme.colors.textPrimary,
     letterSpacing: 1,
-    opacity: 0.4,
+    textTransform: 'uppercase',
+  },
+  drawerButtonConfirm: {
+    paddingVertical: 18,
+    alignItems: 'center',
+    borderRadius: theme.geometry.radius,
+    backgroundColor: theme.colors.error,
+  },
+  drawerButtonConfirmText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
+    color: theme.colors.background,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 });

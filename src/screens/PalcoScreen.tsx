@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions, Vibration } from 'react-native';
 import { theme } from '../theme/colors';
+import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useKeepAwake } from 'expo-keep-awake';
 import { StatusBar } from 'expo-status-bar';
@@ -12,6 +13,8 @@ import Animated, {
   withSequence,
   Easing,
   runOnJS,
+  interpolate,
+  withDelay,
 } from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { Block } from '../types';
@@ -258,13 +261,27 @@ const Particle = ({ index, total, progress }: { index: number, total: number, pr
 
 function FinishedView({ onEnd }: { onEnd: () => void }) {
   const particlesProgress = useSharedValue(0);
+  const orbScale = useSharedValue(0);
+  const orbRotate = useSharedValue(0);
   const contentOpacity = useSharedValue(0);
   const contentTranslateY = useSharedValue(20);
 
   useEffect(() => {
-    particlesProgress.value = withDelay(150, withTiming(1, { duration: 1800, easing: Easing.out(Easing.exp) }));
-    contentOpacity.value = withDelay(900, withTiming(1, { duration: 1000 }));
-    contentTranslateY.value = withDelay(900, withTiming(0, { duration: 1000, easing: Easing.out(Easing.cubic) }));
+    // Orb appears and collapses
+    orbScale.value = withSequence(
+      withTiming(1, { duration: 400, easing: Easing.out(Easing.back(1.5)) }),
+      withDelay(100, withTiming(0, { duration: 300, easing: Easing.in(Easing.exp) }))
+    );
+
+    // Orb spins in as it appears
+    orbRotate.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.back(1.5)) });
+
+    // Particles explode right as the orb collapses (at 800ms)
+    particlesProgress.value = withDelay(800, withTiming(1, { duration: 1500, easing: Easing.out(Easing.exp) }));
+
+    // Text reveals after explosion
+    contentOpacity.value = withDelay(1400, withTiming(1, { duration: 800 }));
+    contentTranslateY.value = withDelay(1400, withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) }));
   }, []);
 
   const contentStyle = useAnimatedStyle(() => ({
@@ -272,19 +289,40 @@ function FinishedView({ onEnd }: { onEnd: () => void }) {
     transform: [{ translateY: contentTranslateY.value }]
   }));
 
-  const NUM_PARTICLES = 36;
+  const orbStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: orbScale.value },
+      { rotate: `${interpolate(orbRotate.value, [0, 1], [-90, 0])}deg` }
+    ]
+  }));
+
+  const NUM_PARTICLES = 40;
 
   return (
     <View style={[styles.container, styles.finishedContainer]}>
       <StatusBar style="dark" />
       
-      <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]} pointerEvents="none">
+      {/* Orb */}
+      <Animated.View style={[{
+        position: 'absolute',
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: theme.colors.textPrimary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 5,
+      }, orbStyle]}>
+        <Feather name="check" size={40} color={theme.colors.background} />
+      </Animated.View>
+
+      <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', zIndex: 4 }]} pointerEvents="none">
         {Array.from({ length: NUM_PARTICLES }).map((_, i) => (
           <Particle key={i} index={i} total={NUM_PARTICLES} progress={particlesProgress} />
         ))}
       </View>
 
-      <Animated.View style={[{ alignItems: 'center' }, contentStyle]}>
+      <Animated.View style={[{ alignItems: 'center', zIndex: 10 }, contentStyle]}>
         <Text style={styles.finishedTitle}>Apresentação Finalizada!</Text>
         <Text style={styles.finishedSubtitle}>Parabéns por concluir.</Text>
         <Pressable style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]} onPress={onEnd}>
@@ -295,37 +333,6 @@ function FinishedView({ onEnd }: { onEnd: () => void }) {
   );
 }
 
-  return (
-    <GestureDetector gesture={doubleTap}>
-      <Animated.View style={styles.container}>
-        <StatusBar style={blockIsLight ? "dark" : "light"} animated={true} />
-        <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
-          <Animated.View style={[bgStyle, { alignItems: 'center', justifyContent: 'center' }]}>
-            <View style={{ width: width * 0.2, height: width * 0.2, borderRadius: width * 0.1, backgroundColor: currentBlock?.color || theme.colors.textPrimary, opacity: 0.12 }} />
-            <View style={{ position: 'absolute', width: width * 0.6, height: width * 0.6, borderRadius: width * 0.3, backgroundColor: currentBlock?.color || theme.colors.textPrimary, opacity: 0.08 }} />
-            <View style={{ position: 'absolute', width: width * 1.4, height: width * 1.4, borderRadius: width * 0.7, backgroundColor: currentBlock?.color || theme.colors.textPrimary, opacity: 0.04 }} />
-          </Animated.View>
-        </View>
-        <Animated.View style={[styles.content, contentStyle]}>
-          <View style={styles.topContainer}>
-            <Text style={styles.currentBlockTitle}>{currentBlock?.title || ''}</Text>
-          </View>
-          <View style={styles.centerContainer}>
-            {currentBlock?.text ? (
-              <Text style={[styles.currentBlockText, { fontSize: getDynamicFontSize(currentBlock.text), lineHeight: getDynamicFontSize(currentBlock.text) * 1.3 }]}>{currentBlock.text}</Text>
-            ) : (
-              <Text style={[styles.currentBlockText, { opacity: 0.3 }]}> (Sem texto)</Text>
-            )}
-          </View>
-          <View style={styles.bottomContainer}>
-            {isWaitingForNext && <Text style={styles.waitingHint}>Dê dois toques na tela para avançar</Text>}
-            <Text style={[styles.remainingTime, isWaitingForNext && styles.remainingTimeAlert]}>{formatSecondsToTime(remainingTime)}</Text>
-          </View>
-        </Animated.View>
-      </Animated.View>
-    </GestureDetector>
-  );
-}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
