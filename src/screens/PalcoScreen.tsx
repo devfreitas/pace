@@ -183,17 +183,117 @@ export function PalcoScreen({ blocks, onEnd }: PalcoScreenProps) {
   }));
 
   if (isFinished) {
-    return (
-      <View style={[styles.container, styles.finishedContainer]}>
-        <StatusBar style="dark" />
+    return <FinishedView onEnd={onEnd} />;
+  }
+
+  return (
+    <GestureDetector gesture={doubleTap}>
+      <Animated.View style={styles.container}>
+        <StatusBar style={blockIsLight ? "dark" : "light"} animated={true} />
+        <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
+          <Animated.View style={[bgStyle, { alignItems: 'center', justifyContent: 'center' }]}>
+            <View style={{ width: width * 0.2, height: width * 0.2, borderRadius: width * 0.1, backgroundColor: currentBlock?.color || theme.colors.textPrimary, opacity: 0.12 }} />
+            <View style={{ position: 'absolute', width: width * 0.6, height: width * 0.6, borderRadius: width * 0.3, backgroundColor: currentBlock?.color || theme.colors.textPrimary, opacity: 0.08 }} />
+            <View style={{ position: 'absolute', width: width * 1.4, height: width * 1.4, borderRadius: width * 0.7, backgroundColor: currentBlock?.color || theme.colors.textPrimary, opacity: 0.04 }} />
+          </Animated.View>
+        </View>
+        <Animated.View style={[styles.content, contentStyle]}>
+          <View style={styles.topContainer}>
+            <Text style={styles.currentBlockTitle}>{currentBlock?.title || ''}</Text>
+          </View>
+          <View style={styles.centerContainer}>
+            {currentBlock?.text ? (
+              <Text style={[styles.currentBlockText, { fontSize: getDynamicFontSize(currentBlock.text), lineHeight: getDynamicFontSize(currentBlock.text) * 1.3 }]}>{currentBlock.text}</Text>
+            ) : (
+              <Text style={[styles.currentBlockText, { opacity: 0.3 }]}> (Sem texto)</Text>
+            )}
+          </View>
+          <View style={styles.bottomContainer}>
+            {isWaitingForNext && <Text style={styles.waitingHint}>Dê dois toques na tela para avançar</Text>}
+            <Text style={[styles.remainingTime, isWaitingForNext && styles.remainingTimeAlert]}>{formatSecondsToTime(remainingTime)}</Text>
+          </View>
+        </Animated.View>
+      </Animated.View>
+    </GestureDetector>
+  );
+}
+
+const Particle = ({ index, total, progress }: { index: number, total: number, progress: Animated.SharedValue<number> }) => {
+  const random1 = Math.sin(index * 123.456) * 0.5 + 0.5;
+  const random2 = Math.cos(index * 321.654) * 0.5 + 0.5;
+  const random3 = Math.sin(index * 890.123) * 0.5 + 0.5;
+
+  const angle = (index * 360) / total + (random1 * 30 - 15);
+  const distance = 60 + random2 * 180;
+  const size = 6 + random3 * 10;
+
+  const theta = (angle * Math.PI) / 180;
+  const targetX = Math.cos(theta) * distance;
+  const targetY = Math.sin(theta) * distance;
+
+  const colors = [theme.colors.accent, theme.emotions.story, theme.emotions.intro, theme.colors.textPrimary, theme.emotions.climax];
+  const color = colors[index % colors.length];
+
+  const style = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(progress.value, [0, 0.7, 1], [1, 1, 0]),
+      transform: [
+        { translateX: interpolate(progress.value, [0, 1], [0, targetX]) },
+        { translateY: interpolate(progress.value, [0, 1], [0, targetY]) },
+        { scale: interpolate(progress.value, [0, 1], [0.5, 1]) },
+      ]
+    };
+  });
+
+  return (
+    <Animated.View style={[{
+      position: 'absolute',
+      width: size,
+      height: size,
+      borderRadius: size / 2,
+      backgroundColor: color,
+    }, style]} />
+  );
+};
+
+function FinishedView({ onEnd }: { onEnd: () => void }) {
+  const particlesProgress = useSharedValue(0);
+  const contentOpacity = useSharedValue(0);
+  const contentTranslateY = useSharedValue(20);
+
+  useEffect(() => {
+    particlesProgress.value = withDelay(150, withTiming(1, { duration: 1800, easing: Easing.out(Easing.exp) }));
+    contentOpacity.value = withDelay(900, withTiming(1, { duration: 1000 }));
+    contentTranslateY.value = withDelay(900, withTiming(0, { duration: 1000, easing: Easing.out(Easing.cubic) }));
+  }, []);
+
+  const contentStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ translateY: contentTranslateY.value }]
+  }));
+
+  const NUM_PARTICLES = 36;
+
+  return (
+    <View style={[styles.container, styles.finishedContainer]}>
+      <StatusBar style="dark" />
+      
+      <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]} pointerEvents="none">
+        {Array.from({ length: NUM_PARTICLES }).map((_, i) => (
+          <Particle key={i} index={i} total={NUM_PARTICLES} progress={particlesProgress} />
+        ))}
+      </View>
+
+      <Animated.View style={[{ alignItems: 'center' }, contentStyle]}>
         <Text style={styles.finishedTitle}>Apresentação Finalizada!</Text>
         <Text style={styles.finishedSubtitle}>Parabéns por concluir.</Text>
         <Pressable style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]} onPress={onEnd}>
           <Text style={styles.backButtonText}>Voltar para Configurações</Text>
         </Pressable>
-      </View>
-    );
-  }
+      </Animated.View>
+    </View>
+  );
+}
 
   return (
     <GestureDetector gesture={doubleTap}>

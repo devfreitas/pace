@@ -14,7 +14,7 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 
-const { width, height } = Dimensions.get('window');
+  const { width, height } = Dimensions.get('window');
 
 import { StaggeredText } from '../components/StaggeredText';
 
@@ -25,13 +25,20 @@ interface WelcomeScreenProps {
 export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
   const button1Anim = useSharedValue(0);
   const button2Anim = useSharedValue(0);
+  const button3Anim = useSharedValue(0);
   const bgPulse = useSharedValue(1);
+  const containerReveal = useSharedValue(0);
 
   useEffect(() => {
     const easeOut = Easing.bezier(0.22, 1, 0.36, 1);
+    const luxuriousReveal = Easing.bezier(0.16, 1, 0.3, 1);
 
-    button1Anim.value = withTiming(1, { duration: 800, easing: easeOut });
-    button2Anim.value = withDelay(150, withTiming(1, { duration: 800, easing: easeOut }));
+    // Fade and scale the entire screen from the center over 2 seconds
+    containerReveal.value = withTiming(1, { duration: 2000, easing: luxuriousReveal });
+
+    button1Anim.value = withDelay(1200, withTiming(1, { duration: 1000, easing: easeOut }));
+    button2Anim.value = withDelay(1400, withTiming(1, { duration: 1000, easing: easeOut }));
+    button3Anim.value = withDelay(1600, withTiming(1, { duration: 1000, easing: easeOut }));
 
     bgPulse.value = withRepeat(
       withSequence(
@@ -76,6 +83,11 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
     opacity: 0.15,
   }));
 
+  const screenRevealStyle = useAnimatedStyle(() => ({
+    opacity: containerReveal.value,
+    transform: [{ scale: interpolate(containerReveal.value, [0, 1], [0.85, 1]) }],
+  }));
+
   const button1Style = useAnimatedStyle(() => ({
     opacity: button1Anim.value,
     transform: [{ translateY: interpolate(button1Anim.value, [0, 1], [20, 0]) }]
@@ -86,27 +98,32 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
     transform: [{ translateY: interpolate(button2Anim.value, [0, 1], [20, 0]) }]
   }));
 
+  const button3Style = useAnimatedStyle(() => ({
+    opacity: button3Anim.value,
+    transform: [{ translateY: interpolate(button3Anim.value, [0, 1], [20, 0]) }]
+  }));
+
   return (
     <View style={styles.container}>
       <Animated.View style={[StyleSheet.absoluteFill, styles.bgContainer, bgStyle]}>
         <View style={styles.blob} />
       </Animated.View>
 
-      <View style={styles.content}>
+      <Animated.View style={[styles.content, screenRevealStyle]}>
         <View style={{ gap: -4 }}>
           <StaggeredText 
             text="O palco é seu." 
-            delay={200}
+            delay={400}
             textStyle={[styles.titleLine, { color: theme.colors.textPrimary }]} 
           />
           <StaggeredText 
             text="Nós cuidamos" 
-            delay={600}
+            delay={800}
             textStyle={[styles.titleLine, { color: theme.colors.textPrimary }]} 
           />
           <StaggeredText 
             text="do ritmo." 
-            delay={1000}
+            delay={1200}
             textStyle={[styles.titleLine, { color: theme.colors.textPrimary }]} 
           />
         </View>
@@ -128,12 +145,13 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
               <Text style={styles.buttonOutlineText}>Anotações Livres</Text>
             </Pressable>
           </Animated.View>
+          <Animated.View style={button3Style}>
+            <Pressable style={styles.clearButton} onPress={handleClearData}>
+              <Text style={styles.clearButtonText}>Limpar</Text>
+            </Pressable>
+          </Animated.View>
         </View>
-      </View>
-
-      <Pressable style={styles.clearButton} onPress={handleClearData}>
-        <Text style={styles.clearButtonText}>Limpar</Text>
-      </Pressable>
+      </Animated.View>
     </View>
   );
 }
@@ -217,11 +235,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   clearButton: {
-    position: 'absolute',
-    bottom: 32,
-    right: 24,
     padding: 12,
-    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   clearButtonText: {
     fontFamily: 'CormorantGaramond_400Regular',
