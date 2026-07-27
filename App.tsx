@@ -13,7 +13,7 @@ import { SetupScreen } from './src/screens/SetupScreen';
 import { PalcoScreen } from './src/screens/PalcoScreen';
 import { NotesSetupScreen } from './src/screens/NotesSetupScreen';
 import { ScreenTransition } from './src/components/ScreenTransition';
-import { useTheme, Theme, theme } from './src/theme/colors';
+import { useTheme, Theme, theme, ThemeProvider } from './src/theme/colors';
 import { Block } from './src/types';
 
 type Screen = 'welcome' | 'setup' | 'palco' | 'notes_setup';
@@ -21,7 +21,7 @@ type Screen = 'welcome' | 'setup' | 'palco' | 'notes_setup';
 import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 
-export default function App() {
+export function App() {
   const theme = useTheme();
 
   const [currentScreen, setCurrentScreen] = useState<Screen>('welcome');
@@ -132,6 +132,14 @@ export default function App() {
         </View>
       </GestureDetector>
     </GestureHandlerRootView>
+  );
+}
+
+export default function AppWrapper() {
+  return (
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
   );
 }
 

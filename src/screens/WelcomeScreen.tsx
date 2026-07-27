@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions, Alert } from 'react-native';
-import { useTheme, Theme, theme } from '../theme/colors';
+import { useTheme, Theme, theme, useThemeContext, ThemeMode } from '../theme/colors';
+import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
@@ -23,11 +24,26 @@ interface WelcomeScreenProps {
 }
 
 export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
+  const { mode, setMode } = useThemeContext();
   const theme = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
   const button1Anim = useSharedValue(0);
   const button2Anim = useSharedValue(0);
   const button3Anim = useSharedValue(0);
+
+  const handleToggleTheme = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (mode === 'auto') setMode('light');
+    else if (mode === 'light') setMode('dark');
+    else setMode('auto');
+  };
+
+  const getThemeIcon = () => {
+    if (mode === 'light') return 'sun';
+    if (mode === 'dark') return 'moon';
+    return 'aperture'; // Poetic choice for 'auto'
+  };
+
   const bgPulse = useSharedValue(1);
   const containerReveal = useSharedValue(0);
 
@@ -104,6 +120,15 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
       <Animated.View style={[StyleSheet.absoluteFill, styles.bgContainer, bgStyle]}>
         <View style={styles.blob} />
       </Animated.View>
+
+      <View style={styles.headerArea}>
+        <Pressable 
+          style={({ pressed }) => [styles.themeToggle, pressed && styles.themeTogglePressed]}
+          onPress={handleToggleTheme}
+        >
+          <Feather name={getThemeIcon()} size={20} color={theme.colors.textPrimary} />
+        </Pressable>
+      </View>
 
       <Animated.View style={[styles.content, screenRevealStyle]}>
         <View style={{ gap: -4 }}>
@@ -209,6 +234,26 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: theme.colors.background,
     justifyContent: 'center',
     paddingHorizontal: 32,
+  },
+  headerArea: {
+    position: 'absolute',
+    top: 60,
+    right: 24,
+    zIndex: 20,
+  },
+  themeToggle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+    borderWidth: 1,
+    borderColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+  },
+  themeTogglePressed: {
+    opacity: 0.6,
+    transform: [{ scale: 0.9 }],
   },
   bgContainer: {
     alignItems: 'center',
