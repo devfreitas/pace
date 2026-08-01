@@ -4,22 +4,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const lightColors = {
   background: '#FDFCF8',
-  surface: '#F8F5EB',
+  surface: '#F9F8F4',
   textPrimary: '#171717',
   textSecondary: '#525252',
   textMuted: '#A3A3A3',
-  border: '#E7E5DF',
+  border: '#E8E6E1',
   error: '#DC2626',
   accent: '#171717',
 };
 
 export const darkColors = {
-  background: '#000000',
-  surface: '#121212',
+  background: '#121212',
+  surface: '#242424',
   textPrimary: '#FFFFFF',
   textSecondary: '#A3A3A3',
-  textMuted: '#525252',
-  border: '#262626',
+  textMuted: '#666666',
+  border: '#333333',
   error: '#EF4444',
   accent: '#FFFFFF',
 };

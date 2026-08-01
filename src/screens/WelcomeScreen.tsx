@@ -197,7 +197,7 @@ function SettingsDrawer({
 
   return (
     <View style={[StyleSheet.absoluteFill, { zIndex: 100 }]} pointerEvents={visible ? 'auto' : 'none'}>
-      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(15, 23, 42, 0.4)' }, overlayStyle]}>
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }, overlayStyle]}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
       </Animated.View>
       <Animated.View style={[styles.drawerContainer, drawerStyle]}>
@@ -369,7 +369,7 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 32,

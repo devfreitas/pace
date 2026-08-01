@@ -71,17 +71,29 @@ export function NotesSetupScreen({ onBack }: { onBack: () => void }) {
     const block = blocks.find(b => b.id === id);
     if (!block) return;
 
+    let processedText = newText;
     if (block.isList) {
-      let updatedText = newText;
+      if (processedText.startsWith('• ')) {
+        const afterBullet = processedText.slice(2);
+        processedText = '• ' + afterBullet.trimStart();
+      } else {
+        processedText = processedText.trimStart();
+      }
+    } else {
+      processedText = processedText.trimStart();
+    }
+
+    if (block.isList) {
+      let updatedText = processedText;
       const previousText = block.text;
 
-      if (newText.length > previousText.length && newText.endsWith('\n')) {
+      if (updatedText.length > previousText.length && updatedText.endsWith('\n')) {
         if (previousText.endsWith('• ')) {
           updatedText = previousText.slice(0, -2);
           setBlocks(prev => prev.map(b => b.id === id ? { ...b, text: updatedText, isList: false } : b));
           return;
         } else {
-          updatedText = newText + '• ';
+          updatedText = updatedText + '• ';
         }
       }
 
@@ -89,7 +101,7 @@ export function NotesSetupScreen({ onBack }: { onBack: () => void }) {
       return;
     }
 
-    setBlocks(prev => prev.map(b => b.id === id ? { ...b, text: newText } : b));
+    setBlocks(prev => prev.map(b => b.id === id ? { ...b, text: processedText } : b));
   };
 
   const handleKeyPress = (id: string, key: string, currentText: string) => {
