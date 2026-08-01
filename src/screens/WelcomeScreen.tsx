@@ -4,19 +4,8 @@ import { useTheme, Theme, theme, useThemeContext, ThemeMode } from '../theme/col
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  Easing,
-  withRepeat,
-  withSequence,
-  interpolate,
-} from 'react-native-reanimated';
-
-  const { width, height } = Dimensions.get('window');
-
+import Animated, {useSharedValue,useAnimatedStyle,withTiming,withDelay,Easing,withRepeat,withSequence,interpolate,} from 'react-native-reanimated';
+const { width, height } = Dimensions.get('window');
 import { StaggeredText } from '../components/StaggeredText';
 
 interface WelcomeScreenProps {
@@ -41,7 +30,7 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
   const getThemeIcon = () => {
     if (mode === 'light') return 'sun';
     if (mode === 'dark') return 'moon';
-    return 'aperture'; // Poetic choice for 'auto'
+    return 'aperture';
   };
 
   const bgPulse = useSharedValue(1);
@@ -51,21 +40,11 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
     const easeOut = Easing.bezier(0.22, 1, 0.36, 1);
     const luxuriousReveal = Easing.bezier(0.16, 1, 0.3, 1);
 
-    // Fade and scale the entire screen from the center over 2 seconds
     containerReveal.value = withTiming(1, { duration: 2000, easing: luxuriousReveal });
 
     button1Anim.value = withDelay(1200, withTiming(1, { duration: 1000, easing: easeOut }));
     button2Anim.value = withDelay(1400, withTiming(1, { duration: 1000, easing: easeOut }));
     button3Anim.value = withDelay(1600, withTiming(1, { duration: 1000, easing: easeOut }));
-
-    bgPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.05, { duration: 6000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.95, { duration: 6000, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
   }, []);
 
   const handlePress = (mode: 'presentation' | 'notes') => {
@@ -73,27 +52,21 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
     onNext(mode);
   };
 
-  const [isAlertVisible, setAlertVisible] = React.useState(false);
+  const [isSettingsVisible, setSettingsVisible] = React.useState(false);
 
-  const handleClearData = () => {
+  const handleOpenSettings = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setAlertVisible(true);
+    setSettingsVisible(true);
   };
 
   const confirmClearData = async () => {
     try {
       await AsyncStorage.multiRemove(['@setup_data', '@notes_data']);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setAlertVisible(false);
     } catch (e) {
       console.error('Failed to clear data', e);
     }
   };
-
-  const bgStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: bgPulse.value }],
-    opacity: 0.15,
-  }));
 
   const screenRevealStyle = useAnimatedStyle(() => ({
     opacity: containerReveal.value,
@@ -117,19 +90,6 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[StyleSheet.absoluteFill, styles.bgContainer, bgStyle]}>
-        <View style={styles.blob} />
-      </Animated.View>
-
-      <View style={styles.headerArea}>
-        <Pressable 
-          style={({ pressed }) => [styles.themeToggle, pressed && styles.themeTogglePressed]}
-          onPress={handleToggleTheme}
-        >
-          <Feather name={getThemeIcon()} size={20} color={theme.colors.textPrimary} />
-        </Pressable>
-      </View>
-
       <Animated.View style={[styles.content, screenRevealStyle]}>
         <View style={{ gap: -4 }}>
           <StaggeredText 
@@ -167,27 +127,43 @@ export function WelcomeScreen({ onNext }: WelcomeScreenProps) {
             </Pressable>
           </Animated.View>
           <Animated.View style={button3Style}>
-            <Pressable style={styles.clearButton} onPress={handleClearData}>
-              <Text style={styles.clearButtonText}>Limpar Dados</Text>
+            <Pressable style={styles.clearButton} onPress={handleOpenSettings}>
+              <Text style={styles.clearButtonText}>Configurações</Text>
             </Pressable>
           </Animated.View>
         </View>
       </Animated.View>
 
-      <AlertDrawer 
-        visible={isAlertVisible} 
-        onClose={() => setAlertVisible(false)} 
-        onConfirm={confirmClearData} 
+      <SettingsDrawer 
+        visible={isSettingsVisible} 
+        onClose={() => setSettingsVisible(false)} 
+        onConfirmClearData={confirmClearData}
+        themeMode={mode}
+        onToggleTheme={handleToggleTheme}
       />
     </View>
   );
 }
 
-function AlertDrawer({ visible, onClose, onConfirm }: { visible: boolean; onClose: () => void; onConfirm: () => void }) {
+function SettingsDrawer({ 
+  visible, 
+  onClose, 
+  onConfirmClearData,
+  themeMode,
+  onToggleTheme
+}: { 
+  visible: boolean; 
+  onClose: () => void; 
+  onConfirmClearData: () => void;
+  themeMode: string;
+  onToggleTheme: () => void;
+}) {
   const theme = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
   const overlayOpacity = useSharedValue(0);
   const drawerY = useSharedValue(height);
+
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -196,6 +172,7 @@ function AlertDrawer({ visible, onClose, onConfirm }: { visible: boolean; onClos
     } else {
       overlayOpacity.value = withTiming(0, { duration: 300 });
       drawerY.value = withTiming(height, { duration: 300, easing: Easing.in(Easing.cubic) });
+      setConfirmingDelete(false); // Reset confirmation state when closing
     }
   }, [visible]);
 
@@ -207,22 +184,84 @@ function AlertDrawer({ visible, onClose, onConfirm }: { visible: boolean; onClos
     transform: [{ translateY: drawerY.value }],
   }));
 
+  const handleClearDataPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setConfirmingDelete(true);
+  };
+
+  const getThemeIcon = () => {
+    if (themeMode === 'light') return 'sun';
+    if (themeMode === 'dark') return 'moon';
+    return 'aperture';
+  };
+
   return (
     <View style={[StyleSheet.absoluteFill, { zIndex: 100 }]} pointerEvents={visible ? 'auto' : 'none'}>
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(15, 23, 42, 0.4)' }, overlayStyle]}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
       </Animated.View>
       <Animated.View style={[styles.drawerContainer, drawerStyle]}>
-        <Text style={styles.drawerTitle}>Apagar tudo?</Text>
-        <Text style={styles.drawerSubtitle}>Isso removerá todas as apresentações salvas e anotações. Esta ação não pode ser desfeita.</Text>
-        <View style={styles.drawerActions}>
-          <Pressable style={({ pressed }) => [styles.drawerButtonConfirm, pressed && styles.buttonPressed]} onPress={onConfirm}>
-            <Text style={styles.drawerButtonConfirmText}>Apagar Definitivamente</Text>
-          </Pressable>
-          <Pressable style={({ pressed }) => [styles.drawerButtonCancel, pressed && styles.buttonPressed]} onPress={onClose}>
-            <Text style={styles.drawerButtonCancelText}>Cancelar</Text>
-          </Pressable>
+        <Text style={styles.drawerTitle}>Configurações</Text>
+        
+        <View style={styles.settingsList}>
+          
+          <View style={styles.settingRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.settingLabel}>Aparência</Text>
+              <Text style={styles.settingDescription}>Alterar o tema do aplicativo</Text>
+            </View>
+            <Pressable 
+              style={({ pressed }) => [styles.themeToggle, pressed && styles.themeTogglePressed]}
+              onPress={onToggleTheme}
+            >
+              <Feather name={getThemeIcon()} size={20} color={theme.colors.textPrimary} />
+            </Pressable>
+          </View>
+
+          <View style={[styles.settingRow, { borderBottomWidth: 0, flexDirection: 'column', alignItems: 'stretch' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingLabel}>Apagar Dados</Text>
+                <Text style={styles.settingDescription}>Remover todas as apresentações</Text>
+              </View>
+              <Pressable 
+                style={({ pressed }) => [styles.clearDataBtn, pressed && styles.buttonPressed, confirmingDelete && { opacity: 0.5 }]} 
+                onPress={handleClearDataPress}
+                disabled={confirmingDelete}
+              >
+                <Feather name="trash-2" size={20} color={theme.colors.error} />
+              </Pressable>
+            </View>
+
+            {confirmingDelete && (
+              <View style={styles.confirmDeleteContainer}>
+                <Text style={styles.confirmDeleteText}>Tem certeza? Essa ação não pode ser desfeita.</Text>
+                <View style={styles.confirmDeleteActions}>
+                  <Pressable 
+                    style={({ pressed }) => [styles.cancelDeleteBtn, pressed && styles.buttonPressed]} 
+                    onPress={() => setConfirmingDelete(false)}
+                  >
+                    <Text style={styles.cancelDeleteBtnText}>Cancelar</Text>
+                  </Pressable>
+                  <Pressable 
+                    style={({ pressed }) => [styles.confirmDeleteBtn, pressed && styles.buttonPressed]} 
+                    onPress={() => {
+                      onConfirmClearData();
+                      onClose();
+                    }}
+                  >
+                    <Text style={styles.confirmDeleteBtnText}>Sim, apagar</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+          </View>
+
         </View>
+
+        <Pressable style={({ pressed }) => [styles.drawerButtonCancel, pressed && styles.buttonPressed, { marginTop: 32 }]} onPress={onClose}>
+          <Text style={styles.drawerButtonCancelText}>Fechar</Text>
+        </Pressable>
       </Animated.View>
     </View>
   );
@@ -231,7 +270,7 @@ function AlertDrawer({ visible, onClose, onConfirm }: { visible: boolean; onClos
 const getStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
@@ -254,20 +293,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
   themeTogglePressed: {
     opacity: 0.6,
     transform: [{ scale: 0.9 }],
-  },
-  bgContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 0,
-  },
-  blob: {
-    width: width * 1.5,
-    height: width * 1.5,
-    borderRadius: width * 0.75,
-    backgroundColor: theme.colors.textSecondary,
-    position: 'absolute',
-    top: -width * 0.5,
-    right: -width * 0.5,
   },
   content: {
     flex: 1,
@@ -361,15 +386,81 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     color: theme.colors.textPrimary,
     marginBottom: 12,
   },
-  drawerSubtitle: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-    lineHeight: 24,
-    marginBottom: 32,
+  settingsList: {
+    marginTop: 16,
+    gap: 0,
   },
-  drawerActions: {
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+  },
+  settingLabel: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 16,
+    color: theme.colors.textPrimary,
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+  },
+  clearDataBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.isDark ? 'rgba(255,59,48,0.1)' : 'rgba(255,59,48,0.05)',
+  },
+  confirmDeleteContainer: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: theme.isDark ? 'rgba(255,59,48,0.05)' : 'rgba(255,59,48,0.02)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.isDark ? 'rgba(255,59,48,0.15)' : 'rgba(255,59,48,0.1)',
+  },
+  confirmDeleteText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: theme.colors.error,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  confirmDeleteActions: {
+    flexDirection: 'row',
     gap: 12,
+  },
+  confirmDeleteBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: theme.geometry.radius,
+    backgroundColor: theme.colors.error,
+  },
+  confirmDeleteBtnText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
+    color: theme.colors.background,
+  },
+  cancelDeleteBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: theme.geometry.radius,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: theme.colors.textSecondary,
+  },
+  cancelDeleteBtnText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
+    color: theme.colors.textPrimary,
   },
   drawerButtonCancel: {
     paddingVertical: 18,
@@ -383,19 +474,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
     color: theme.colors.textPrimary,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  drawerButtonConfirm: {
-    paddingVertical: 18,
-    alignItems: 'center',
-    borderRadius: theme.geometry.radius,
-    backgroundColor: theme.colors.error,
-  },
-  drawerButtonConfirmText: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 14,
-    color: theme.colors.background,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },

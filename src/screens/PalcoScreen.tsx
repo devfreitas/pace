@@ -5,17 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useKeepAwake } from 'expo-keep-awake';
 import { StatusBar } from 'expo-status-bar';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withRepeat,
-  withSequence,
-  Easing,
-  runOnJS,
-  interpolate,
-  withDelay,
-} from 'react-native-reanimated';
+import Animated, {useSharedValue,useAnimatedStyle,withTiming,withRepeat,withSequence,Easing,runOnJS,interpolate,withDelay,} from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { Block } from '../types';
 
@@ -71,27 +61,22 @@ export function PalcoScreen({ blocks, onEnd }: PalcoScreenProps) {
 
   useEffect(() => {
     if (!currentBlock || isFinished) return;
-    
-    // Reset values for new block
     scaleVal.value = 0.1;
     fadeVal.value = 0;
     pulseVal.value = 1;
 
-    // Start background scale and fade
     fadeVal.value = withTiming(1, { duration: 3000, easing: Easing.out(Easing.cubic) });
     scaleVal.value = withTiming(12, { duration: blockDurationSecs * 1000, easing: Easing.linear });
 
-    // Start pulse loop
     pulseVal.value = withRepeat(
       withSequence(
         withTiming(1.08, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
         withTiming(0.96, { duration: 4000, easing: Easing.inOut(Easing.ease) })
       ),
-      -1, // infinite
-      true // reverse
+      -1,
+      true
     );
 
-    // Organic slow rotation
     rotationVal.value = 0;
     rotationVal.value = withRepeat(
       withTiming(360, { duration: 30000, easing: Easing.linear }),
@@ -191,6 +176,11 @@ export function PalcoScreen({ blocks, onEnd }: PalcoScreenProps) {
         <Animated.View style={[styles.content, contentStyle]}>
           <View style={styles.topContainer}>
             <Text style={styles.currentBlockTitle}>{currentBlock?.title || ''}</Text>
+            {!isWaitingForNext && (
+              <Text style={styles.titleHintText}>
+                Dê dois toques na tela para passar{'\n'}para o próximo
+              </Text>
+            )}
           </View>
           <View style={styles.centerContainer}>
             {currentBlock?.text ? (
@@ -258,19 +248,15 @@ function FinishedView({ onEnd }: { onEnd: () => void }) {
   const contentTranslateY = useSharedValue(20);
 
   useEffect(() => {
-    // Orb appears and collapses
     orbScale.value = withSequence(
       withTiming(1, { duration: 400, easing: Easing.out(Easing.back(1.5)) }),
       withDelay(100, withTiming(0, { duration: 300, easing: Easing.in(Easing.exp) }))
     );
 
-    // Orb spins in as it appears
     orbRotate.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.back(1.5)) });
 
-    // Particles explode right as the orb collapses (at 800ms)
     particlesProgress.value = withDelay(800, withTiming(1, { duration: 1500, easing: Easing.out(Easing.exp) }));
 
-    // Text reveals after explosion
     contentOpacity.value = withDelay(1400, withTiming(1, { duration: 800 }));
     contentTranslateY.value = withDelay(1400, withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) }));
   }, []);
@@ -292,8 +278,7 @@ function FinishedView({ onEnd }: { onEnd: () => void }) {
   return (
     <View style={[styles.container, styles.finishedContainer]}>
       <StatusBar style={theme.isDark ? "light" : "dark"} />
-      
-      {/* Orb */}
+
       <Animated.View style={[{
         position: 'absolute',
         width: 80,
@@ -326,10 +311,11 @@ function FinishedView({ onEnd }: { onEnd: () => void }) {
 
 
 const getStyles = (theme: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { flex: 1, zIndex: 10, paddingVertical: 60, paddingHorizontal: 24 },
   topContainer: { alignItems: 'center', marginBottom: 40 },
   currentBlockTitle: { fontFamily: 'CormorantGaramond_600SemiBold', fontSize: 28, color: theme.colors.textPrimary, textAlign: 'center', letterSpacing: 4, textTransform: 'uppercase' },
+  titleHintText: { fontFamily: 'CormorantGaramond_400Regular', fontSize: 14, color: theme.colors.textPrimary, textAlign: 'center', opacity: 0.6, marginTop: 6, lineHeight: 16, fontStyle: 'italic' },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   currentBlockText: { fontFamily: 'CormorantGaramond_500Medium', color: theme.colors.textPrimary, textAlign: 'center', textShadowColor: 'rgba(249,248,246,0.9)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 16 },
   bottomContainer: { alignItems: 'center', marginTop: 40 },

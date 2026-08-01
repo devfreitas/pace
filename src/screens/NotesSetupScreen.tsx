@@ -332,7 +332,7 @@ export function NotesSetupScreen({ onBack }: { onBack: () => void }) {
 }
 
 const getStyles = (theme: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   homeBtnAbsolute: { position: 'absolute', top: 60, left: 24, zIndex: 10 },
   scrollContent: { paddingTop: 115, paddingHorizontal: 24, paddingBottom: 140, flexGrow: 1 },
   titleInput: { fontFamily: 'CormorantGaramond_600SemiBold', fontSize: 40, color: theme.colors.textPrimary, marginBottom: 48, letterSpacing: 2 },

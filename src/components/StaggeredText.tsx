@@ -1,14 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
-import Animated, {
-  Easing,
-  useDerivedValue,
-  useSharedValue,
-  withDelay,
-  withTiming,
-  interpolate,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
+import Animated, {Easing,useDerivedValue,useSharedValue, withDelay, withTiming,interpolate,useAnimatedStyle,} from 'react-native-reanimated';
 
 type StaggeredDigitProps = {
   digit: string;
@@ -108,7 +100,7 @@ export const StaggeredText = ({
     <View style={[styles.container, containerStyle]}>
       {chars.map((char, index) => {
         const delayedProgress = useDerivedValue(() => {
-          const delayMs = index * 40; // tighter stagger
+          const delayMs = index * 40;
           return withDelay(
             delayMs,
             withTiming(progress.value, {
@@ -118,7 +110,6 @@ export const StaggeredText = ({
           );
         }, []);
 
-        // Treat spaces specially so they occupy width
         if (char === ' ') {
           return <View key={index} style={{ width: fontSize * 0.25 }} />;
         }
@@ -148,6 +139,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   digit: {
-    // color inherited from textStyle
   },
 });

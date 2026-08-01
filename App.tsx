@@ -13,6 +13,7 @@ import { SetupScreen } from './src/screens/SetupScreen';
 import { PalcoScreen } from './src/screens/PalcoScreen';
 import { NotesSetupScreen } from './src/screens/NotesSetupScreen';
 import { ScreenTransition } from './src/components/ScreenTransition';
+import { ModernBackground } from './src/components/ModernBackground';
 import { useTheme, Theme, theme, ThemeProvider } from './src/theme/colors';
 import { Block } from './src/types';
 
@@ -124,6 +125,7 @@ export function App() {
       <GestureDetector gesture={edgePanGesture}>
         <View style={{ flex: 1 }}>
           <StatusBar style={theme.isDark ? "light" : "dark"} animated={true} />
+          <ModernBackground />
           <ScreenTransition
             activeScreen={currentScreen}
             direction={direction}

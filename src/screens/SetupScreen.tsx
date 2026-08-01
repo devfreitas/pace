@@ -6,7 +6,6 @@ import * as Haptics from 'expo-haptics';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Utils
 const parseTimeToSeconds = (timeStr: string) => {
   if (!timeStr) return 0;
 
@@ -184,7 +183,6 @@ export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => v
               />
             ))}
           </View>
-          {/* Text */}
           <Text style={[styles.label, { marginTop: 32 }]}>Roteiro / Texto da Tela</Text>
           <TextInput
             style={styles.fullEditTextArea}
@@ -213,7 +211,6 @@ export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => v
         <Feather name="arrow-left" size={28} color={theme.colors.textSecondary} />
       </Pressable>
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {/* Header */}
         <Animated.View style={styles.header} entering={FadeInDown.duration(600).delay(100).springify()}>
           <TextInput
             style={styles.generalThemeInput}
@@ -237,7 +234,6 @@ export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => v
             </Text>
           </View>
         </Animated.View>
-        {/* List */}
         <View style={styles.listContainer}>
           {blocks.map((block, index) => (
             <Animated.View 
@@ -265,7 +261,6 @@ export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => v
           </Animated.View>
         </View>
       </ScrollView>
-      {/* Bottom Action */}
       <View style={styles.footer}>
         <Pressable style={({ pressed }) => [styles.startButton, pressed && styles.startButtonPressed]} onPress={handleStart}>
           <Text style={styles.startButtonText}>Iniciar Apresentação</Text>
@@ -276,7 +271,7 @@ export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => v
 }
 
 const getStyles = (theme: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   homeBtnAbsolute: { position: 'absolute', top: 60, left: 24, zIndex: 10 },
   scrollContent: { paddingTop: 115, paddingHorizontal: 24, paddingBottom: 140 },
   header: { alignItems: 'center', marginBottom: 40 },
@@ -300,7 +295,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
   startButton: { backgroundColor: theme.colors.textPrimary, paddingVertical: 20, width: '100%', alignItems: 'center', borderRadius: theme.geometry.radius },
   startButtonPressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
   startButtonText: { fontFamily: 'CormorantGaramond_600SemiBold', fontSize: 20, color: theme.colors.background, letterSpacing: 2, textTransform: 'uppercase' },
-  // Full edit styles
   fullEditHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 24 },
   backBtn: { width: 80 },
   fullEditTitle: { fontFamily: 'CormorantGaramond_600SemiBold', fontSize: 20, color: theme.colors.textPrimary, letterSpacing: 1, textTransform: 'uppercase' },
