@@ -1,4 +1,7 @@
 # The Stage
+<div align="center">
+  <h3><i>O palco é seu. Nós cuidamos do ritmo.</i></h3>
+</div>
 
 ## Sobre o Projeto
 **The Stage** é um aplicativo focado em auxiliar palestrantes, apresentadores e criadores de conteúdo a gerenciarem seu tempo com precisão e elegância. O lema do app é: **"O palco é seu. Nós cuidamos do ritmo."**
@@ -49,7 +52,19 @@ Após executar este comando:
 1. Para rodar no seu celular físico, escaneie o **QR Code** no terminal usando a câmera (iOS) ou o app **Expo Go** (Android).
 2. Para rodar no emulador de computador, aperte `a` para Android ou `i` para iOS.
 
-##  Apoie o Projeto 
+## Como Contribuir
+
+O projeto é de código aberto e toda contribuição para torná-lo ainda melhor é muito bem-vinda! Se você tem ideias para novas funcionalidades, encontrou um bug ou quer melhorar a performance, siga os passos:
+
+1. Faça um **Fork** deste repositório.
+2. Crie uma branch para a sua alteração: `git checkout -b minha-nova-feature`
+3. Faça o commit das suas alterações: `git commit -m 'feat: Adicionando uma nova feature'`
+4. Envie para o seu repositório original: `git push origin minha-nova-feature`
+5. Abra um **Pull Request** detalhando as mudanças realizadas.
+
+Fique à vontade também para abrir **Issues** relatando problemas ou sugerindo melhorias.
+
+## Apoie o Projeto
 
 O The Stage é um aplicativo desenvolvido com carinho e focado em oferecer uma experiência premium e sem distrações. Para que possamos arcar com os custos das licenças de desenvolvedor e publicar o app oficialmente nas lojas para download gratuito, preciso do seu apoio! Se você curtiu o projeto, ou acredita na ideia, considere nos apoiar com um café!
 
