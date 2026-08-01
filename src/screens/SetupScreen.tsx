@@ -6,131 +6,39 @@ import * as Haptics from 'expo-haptics';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const parseTimeToSeconds = (timeStr: string) => {
-  if (!timeStr) return 0;
-
-  if (!timeStr.includes(':')) {
-    const num = parseInt(timeStr, 10);
-    if (isNaN(num)) return 0;
-    const str = num.toString();
-    if (str.length <= 2) {
-      return parseInt(str, 10);
-    } else {
-      const secStr = str.slice(-2);
-      const minStr = str.slice(0, -2);
-      const m = parseInt(minStr, 10);
-      const s = parseInt(secStr, 10);
-      return (isNaN(m) ? 0 : m * 60) + (isNaN(s) ? 0 : s);
-    }
-  }
-
-  const parts = timeStr.split(':');
-  const min = parseInt(parts[0] || '0', 10);
-  const sec = parts.length > 1 ? parseInt(parts[1] || '0', 10) : 0;
-  return (isNaN(min) ? 0 : min * 60) + (isNaN(sec) ? 0 : sec);
-};
-
-const formatSecondsToTime = (seconds: number) => {
-  if (isNaN(seconds) || seconds < 0) return '0:00';
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
-};
-
-const sanitizeTimeInput = (text: string) => {
-  let cleaned = text.replace(/[^\d:]/g, '');
-  const parts = cleaned.split(':');
-  if (parts.length > 2) {
-    cleaned = parts[0] + ':' + parts.slice(1).join('').slice(0, 2);
-  } else if (parts.length === 2 && parts[1].length > 2) {
-    cleaned = parts[0] + ':' + parts[1].slice(0, 2);
-  }
-  return cleaned;
-};
-
-const formatOnBlur = (text: string) => {
-  const secs = parseTimeToSeconds(text);
-  return formatSecondsToTime(secs);
-};
-
-const initialBlocks = [
-  { id: '1', title: 'Introdução', duration: '2:00', color: theme.emotions.intro, text: '' },
-  { id: '2', title: 'Relato Pessoal', duration: '5:00', color: theme.emotions.story, text: '' },
-  { id: '3', title: 'Conclusão', duration: '3:00', color: theme.emotions.climax, text: '' },
-];
+import { parseTimeToSeconds, formatSecondsToTime, sanitizeTimeInput, formatOnBlur } from '../utils/time';
+import { usePresentationSetup } from '../hooks/usePresentationSetup';
 
 export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => void; onBack: () => void }) {
   const theme = useTheme();
   const styles = React.useMemo(() => getStyles(theme), [theme]);
-  const [blocks, setBlocks] = useState(initialBlocks);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [targetTotalTime, setTargetTotalTime] = useState('10:00');
-  const [generalTheme, setGeneralTheme] = useState('');
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const savedData = await AsyncStorage.getItem('@setup_data');
-        if (savedData) {
-          const parsed = JSON.parse(savedData);
-          if (parsed.blocks && Array.isArray(parsed.blocks) && parsed.blocks.length > 0) {
-            setBlocks(parsed.blocks);
-          }
-          if (parsed.targetTotalTime) setTargetTotalTime(parsed.targetTotalTime);
-          if (parsed.generalTheme !== undefined) setGeneralTheme(parsed.generalTheme);
-        }
-      } catch (e) {
-        console.error('Failed to load setup data', e);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-    const saveData = async () => {
-      try {
-        await AsyncStorage.setItem('@setup_data', JSON.stringify({ blocks, targetTotalTime, generalTheme }));
-      } catch (e) {
-        console.error('Failed to save setup data', e);
-      }
-    };
-    saveData();
-  }, [blocks, targetTotalTime, generalTheme, isLoaded]);
-
-  const targetTotalSeconds = useMemo(() => parseTimeToSeconds(targetTotalTime), [targetTotalTime]);
-
-  const totalSeconds = useMemo(() => {
-    return blocks.reduce((acc, b) => acc + parseTimeToSeconds(b.duration), 0);
-  }, [blocks]);
-
-  const isOvertime = totalSeconds > targetTotalSeconds;
+  
+  const {
+    blocks,
+    targetTotalTime,
+    setTargetTotalTime,
+    generalTheme,
+    setGeneralTheme,
+    totalSeconds,
+    isOvertime,
+    updateBlock,
+    deleteBlock,
+    addNewBlock,
+  } = usePresentationSetup();
 
   const handleStart = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     onStart(blocks);
   };
 
-  const updateBlock = (id: string, key: string, value: string) => {
-    setBlocks(prev => prev.map(b => (b.id === id ? { ...b, [key]: value } : b)));
-  };
-
-  const deleteBlock = (id: string) => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    setBlocks(prev => prev.filter(b => b.id !== id));
+  const handleDeleteBlock = (id: string) => {
+    deleteBlock(id);
     setEditingId(null);
   };
 
-  const addNewBlock = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const newId = Date.now().toString();
-    setBlocks(prev => [
-      ...prev,
-      { id: newId, title: 'Nova Parte', duration: '1:00', color: theme.emotions.neutral || '#888', text: '' },
-    ]);
+  const handleAddNewBlock = () => {
+    const newId = addNewBlock();
     setEditingId(newId);
   };
 
@@ -194,7 +102,7 @@ export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => v
           />
         </ScrollView>
         <View style={styles.fullEditFooter}>
-          <Pressable style={styles.deleteBtnLarge} onPress={() => deleteBlock(block.id)}>
+          <Pressable style={styles.deleteBtnLarge} onPress={() => handleDeleteBlock(block.id)}>
             <Text style={styles.deleteBtnLargeText}>Excluir Parte</Text>
           </Pressable>
           <Pressable style={styles.saveBtnLarge} onPress={() => setEditingId(null)}>
@@ -247,7 +155,7 @@ export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => v
                   <View style={[styles.dot, { backgroundColor: block.color, shadowColor: block.color }]} />
                   <Text style={styles.blockTitleSummary} numberOfLines={1}>{block.title}</Text>
                   <Text style={styles.blockTimeSummary}>{block.duration}</Text>
-                  <Pressable style={styles.summaryDeleteBtn} onPress={() => deleteBlock(block.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <Pressable style={styles.summaryDeleteBtn} onPress={() => handleDeleteBlock(block.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Text style={styles.summaryDeleteBtnText}>✕</Text>
                   </Pressable>
                 </View>
@@ -255,7 +163,7 @@ export function SetupScreen({ onStart, onBack }: { onStart: (blocks: any[]) => v
             </Animated.View>
           ))}
           <Animated.View entering={FadeInDown.duration(400).delay(200 + blocks.length * 100).springify()}>
-            <Pressable style={styles.addBtn} onPress={addNewBlock}>
+            <Pressable style={styles.addBtn} onPress={handleAddNewBlock}>
               <Text style={styles.addBtnText}>+ Adicionar Parte</Text>
             </Pressable>
           </Animated.View>

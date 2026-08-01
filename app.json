@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "new-app",
-    "slug": "new-app",
+    "name": "stage",
+    "slug": "stage",
     "version": "1.0.0",
+    "scheme": "stage",
     "orientation": "portrait",
     "icon": "./public/TheStage.png",
     "userInterfaceStyle": "automatic",
@@ -32,6 +33,9 @@
       "themeColor": "#ffffff",
       "backgroundColor": "#ffffff",
       "display": "standalone"
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
