@@ -5,6 +5,7 @@ import { useTheme, Theme, theme } from '../theme/colors';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NotesToolbar } from '../components/NotesToolbar';
 
 type Block = { id: string; text: string; color?: string; isList?: boolean };
 
@@ -275,70 +276,20 @@ export function NotesSetupScreen({ onBack }: { onBack: () => void }) {
         </Animated.View>
       </ScrollView>
 
-      {activeId && (
-        <View style={styles.toolbar}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.toolbarScroll} keyboardShouldPersistTaps="handled">
-            {!showColors ? (
-              <View style={styles.toolsGroup}>
-                <Pressable style={styles.toolBtn} onPress={moveBlockUp}>
-                  <Feather name="arrow-up" size={18} color={theme.colors.textPrimary} />
-                </Pressable>
-                <Pressable style={styles.toolBtn} onPress={moveBlockDown}>
-                  <Feather name="arrow-down" size={18} color={theme.colors.textPrimary} />
-                </Pressable>
-                {blocks.length > 1 && (
-                  <Pressable style={styles.toolBtn} onPress={deleteBlock}>
-                    <Feather name="trash-2" size={18} color={theme.colors.error} />
-                  </Pressable>
-                )}
-                <Pressable style={styles.toolBtn} onPress={addBlockBelow}>
-                  <Feather name="corner-down-right" size={18} color={theme.colors.textPrimary} />
-                </Pressable>
-                <Pressable 
-                  style={[styles.toolBtn, blocks.find(b => b.id === activeId)?.isList && styles.toolBtnActive]} 
-                  onPress={toggleList}
-                >
-                  <Feather name="list" size={18} color={blocks.find(b => b.id === activeId)?.isList ? theme.colors.background : theme.colors.textPrimary} />
-                </Pressable>
-
-                <View style={styles.toolbarDivider} />
-                
-                <Pressable style={styles.toolBtn} onPress={() => { Haptics.selectionAsync(); setShowColors(true); }}>
-                  <Feather name="aperture" size={18} color={theme.colors.textPrimary} />
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.toolsGroup}>
-                <Pressable style={styles.toolBtn} onPress={() => { Haptics.selectionAsync(); setShowColors(false); }}>
-                  <Feather name="chevron-left" size={18} color={theme.colors.textPrimary} />
-                </Pressable>
-                <View style={styles.toolbarDivider} />
-                <Pressable 
-                  style={styles.colorSwatchClear}
-                  onPress={() => updateBlockColor(undefined)}
-                >
-                  <Feather name="slash" size={16} color={theme.colors.textSecondary} />
-                </Pressable>
-                
-                {Object.entries(theme.emotions).map(([name, colorHex]) => {
-                  const isActiveColor = blocks.find(b => b.id === activeId)?.color === colorHex;
-                  return (
-                    <Pressable
-                      key={name}
-                      onPress={() => updateBlockColor(colorHex)}
-                      style={[
-                        styles.colorSwatch,
-                        { backgroundColor: colorHex, shadowColor: colorHex },
-                        isActiveColor && styles.colorSwatchSelected
-                      ]}
-                    />
-                  );
-                })}
-              </View>
-            )}
-          </ScrollView>
-        </View>
-      )}
+      <NotesToolbar
+        activeId={activeId}
+        blocksLength={blocks.length}
+        isList={blocks.find(b => b.id === activeId)?.isList || false}
+        activeColor={blocks.find(b => b.id === activeId)?.color}
+        showColors={showColors}
+        setShowColors={setShowColors}
+        onMoveUp={moveBlockUp}
+        onMoveDown={moveBlockDown}
+        onDelete={deleteBlock}
+        onAddBelow={addBlockBelow}
+        onToggleList={toggleList}
+        onUpdateColor={updateBlockColor}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -354,15 +305,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
   activeLine: { width: 3, borderRadius: theme.geometry.radius, marginRight: 12, marginTop: 4, marginBottom: 4 },
   blockInput: { flex: 1, fontFamily: 'CormorantGaramond_400Regular', fontSize: 24, color: theme.colors.textSecondary, textAlignVertical: 'top', lineHeight: 36 },
   blockInputActive: { color: theme.colors.textPrimary },
-  toolbar: { paddingVertical: 12, backgroundColor: theme.colors.surface, borderTopWidth: 1, borderTopColor: theme.colors.border },
-  toolbarScroll: { paddingHorizontal: 24, gap: 16, alignItems: 'center' },
-  toolsGroup: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  toolBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: theme.colors.border },
-  toolBtnActive: { backgroundColor: theme.colors.textPrimary, borderColor: theme.colors.textPrimary },
-  toolbarDivider: { width: 1, height: 24, backgroundColor: theme.colors.border, marginHorizontal: 4 },
-  colorSwatch: { width: 32, height: 32, borderRadius: 16, elevation: 3, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 },
-  colorSwatchSelected: { borderWidth: 2, borderColor: theme.colors.textPrimary },
-  colorSwatchClear: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: theme.colors.border, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.background },
   addBtn: { paddingVertical: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderStyle: 'dashed', borderColor: theme.colors.textSecondary, borderRadius: theme.geometry.radius, marginTop: 24 },
   addBtnText: { fontFamily: 'CormorantGaramond_500Medium', fontSize: 18, color: theme.colors.textSecondary, letterSpacing: 1 }
 });

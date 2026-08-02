@@ -10,7 +10,7 @@ export default function IndexRoute() {
         if (mode === 'presentation') {
           router.push('/setup');
         } else {
-          router.push('/notes_setup');
+          router.push('/notes-setup');
         }
       }}
     />

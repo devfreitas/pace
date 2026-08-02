@@ -50,7 +50,7 @@ function LayoutContent() {
           <Stack.Screen name="index" />
           <Stack.Screen name="setup" />
           <Stack.Screen name="palco" />
-          <Stack.Screen name="notes_setup" />
+          <Stack.Screen name="notes-setup" />
         </Stack>
       </View>
     </GestureHandlerRootView>
